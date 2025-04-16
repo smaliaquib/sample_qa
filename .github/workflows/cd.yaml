@@ -1,23 +1,22 @@
-name: CI/CD Pipeline for EKS Deployment
+name: CD Pipeline
 on:
-  push:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
     branches:
       - main
-  pull_request:
-    branches:
-      - main 
 env:
     AWS_REGION: ${{ secrets.AWS_REGION }}
     ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
     EKS_CLUSTER_NAME: ${{ secrets.EKS_CLUSTER_NAME }}
     DEPLOYMENT_NAME: qa-fastapi-app-deploy
-    IMAGE: qa-fastapi-app
 jobs:
-  build-and-deploy:
-    name: Build, Scan, Publish, and Deploy
+  deploy:
+    name: Deploy to EKS
     runs-on: ubuntu-latest
     environment: production
-
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -28,28 +27,6 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
           aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        run: |
-         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID}}.dkr.ecr.$AWS_REGION.amazonaws.com  
-         
-      - name: Install Trivy
-        run: |
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
-          
-      - name: Clean up disk space
-        run: |
-          sudo rm -rf /var/lib/apt/lists/*
-          sudo apt-get clean
-
-      - name: Scan Docker image with Trivy
-        run: |
-          trivy image --severity HIGH,CRITICAL $ECR_REPOSITORY:$GITHUB_SHA
-
-      - name: Push Docker image to Amazon ECR
-        run: |
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$GITHUB_SHA
 
       - name: Setup kubectl
         run: |
@@ -84,4 +61,4 @@ jobs:
           kustomize edit set image image_name=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$GITHUB_SHA
           kustomize build . | kubectl apply -f -
           kubectl rollout status deployment/$DEPLOYMENT_NAME
-          kubectl get services -o wid
+          kubectl get services -o wide
