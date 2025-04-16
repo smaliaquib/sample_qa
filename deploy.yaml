@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: gptcontainer
-        image: 493742262720.dkr.ecr.us-east-2.amazonaws.com/qa-fastapi-app:latest
+        image: 628593563433.dkr.ecr.us-east-1.amazonaws.com/qa-system:latest
         ports:
         - containerPort: 8000
 ---
