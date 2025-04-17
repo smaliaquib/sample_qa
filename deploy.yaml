@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: gptcontainer
-        image: 628593563433.dkr.ecr.us-east-1.amazonaws.com/qa-system:latest
+        image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${GITHUB_SHA}
         ports:
         - containerPort: 8000
 ---
