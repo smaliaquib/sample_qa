@@ -4,5 +4,4 @@ resources:
 - deploy.yaml
 images:
 - name: image_name
-  newName: 493742262720.dkr.ecr.us-east-2.amazonaws.com/qa-fastapi-app
-  newTag: latest
+  newName: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${GITHUB_SHA}
