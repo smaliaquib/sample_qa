@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: gpt-huggingface
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: gpt-hf-pod
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: gptcontainer
-        image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${GITHUB_SHA}
+        image: image_name
         ports:
         - containerPort: 8000
 ---
