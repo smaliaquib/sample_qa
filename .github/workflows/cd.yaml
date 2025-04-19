@@ -1,64 +1,94 @@
 name: CD Pipeline
 on:
-  workflow_run:
-    workflows: ["CI Pipeline"]
-    types:
-      - completed
+  push:
     branches:
-      - main
+      - feature-0.1
+  # pull_request:
+  #   branches:
+  #     - feature-0.1 
+
+  # workflow_run:
+  #   workflows: ["CI Pipeline"]
+  #   types:
+  #     - completed
+    # branches:
+    #   - feature-0.1
 env:
     AWS_REGION: ${{ secrets.AWS_REGION }}
     ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
     EKS_CLUSTER_NAME: ${{ secrets.EKS_CLUSTER_NAME }}
-    DEPLOYMENT_NAME: qa-fastapi-app-deploy
+    DEPLOYMENT_NAME: gpt-huggingface
 jobs:
-  deploy:
-    name: Deploy to EKS
+  terraform:
     runs-on: ubuntu-latest
-    environment: production
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Apply
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          terraform apply -auto-approve \
+            -var "aws_access_key=${AWS_ACCESS_KEY_ID}" \
+            -var "aws_secret_key=${AWS_SECRET_ACCESS_KEY}" \
+            -var "aws_region=${AWS_REGION}"
         
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
-          aws-region: ${{ env.AWS_REGION }}
+  # deploy:
+  #   name: Deploy to EKS
+  #   runs-on: ubuntu-latest
+  #   environment: production
+  #   if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
+        
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+  #         aws-region: ${{ env.AWS_REGION }}
 
-      - name: Setup kubectl
-        run: |
-          curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.13/2022-06-08/bin/linux/amd64/kubectl
-          chmod +x ./kubectl
-          mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$HOME/bin:$PATH
-          echo 'export PATH=$HOME/bin:$PATH' >> ~/.bashrc
+  #     - name: Setup kubectl
+  #       run: |
+  #         curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.13/2022-06-08/bin/linux/amd64/kubectl
+  #         chmod +x ./kubectl
+  #         mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$HOME/bin:$PATH
+  #         echo 'export PATH=$HOME/bin:$PATH' >> ~/.bashrc
 
-      - name: Set up Kustomize
-        run: |
-          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
-          chmod u+x kustomize
-          sudo mv kustomize /usr/local/bin/kustomize
+  #     - name: Set up Kustomize
+  #       run: |
+  #         curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+  #         chmod u+x kustomize
+  #         sudo mv kustomize /usr/local/bin/kustomize
 
-      - name: Update kubeconfig
-        run: |
-          aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+  #     - name: Update kubeconfig
+  #       run: |
+  #         aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
   
-      - name: Install kube-score
-        run: |
-          curl -L -o kube-score https://github.com/zegl/kube-score/releases/download/v1.11.0/kube-score_1.11.0_linux_amd64
-          chmod +x kube-score
-          sudo mv kube-score /usr/local/bin/
+  #     - name: Install kube-score
+  #       run: |
+  #         curl -L -o kube-score https://github.com/zegl/kube-score/releases/download/v1.11.0/kube-score_1.11.0_linux_amd64
+  #         chmod +x kube-score
+  #         sudo mv kube-score /usr/local/bin/
   
-      - name: Lint Kubernetes manifests with kube-score
-        continue-on-error: true
-        run: |
-          kube-score score --output-format ci deploy.yaml
+  #     - name: Lint Kubernetes manifests with kube-score
+  #       continue-on-error: true
+  #       run: |
+  #         kube-score score --output-format ci deploy.yaml
   
-      - name: Deploy with Kustomize
-        run: |
-          kustomize edit set image image_name=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$GITHUB_SHA
-          kustomize build . | kubectl apply -f -
-          kubectl rollout status deployment/$DEPLOYMENT_NAME
-          kubectl get services -o wide
+  #     - name: Deploy with Kustomize
+  #       run: |
+  #         kustomize edit set image image_name=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$GITHUB_SHA
+  #         kustomize build . | kubectl apply -f -
+  #         kubectl rollout status deployment/$DEPLOYMENT_NAME
+  #         kubectl get services -o wide
