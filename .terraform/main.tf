@@ -8,8 +8,6 @@ module "eks" {
   source          = "terraform-aws-modules/eks/aws"
   cluster_name    = "my-eks-cluster"
   cluster_version = "1.32"
-  create_vpc      = true  # Automatically create VPC and subnets
-  manage_aws_auth = true
 
   eks_managed_node_groups = {
     default = {
