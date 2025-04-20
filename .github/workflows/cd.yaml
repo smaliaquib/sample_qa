@@ -44,8 +44,9 @@ jobs:
           terraform apply -auto-approve \
             -var "aws_access_key=${AWS_ACCESS_KEY_ID}" \
             -var "aws_secret_key=${AWS_SECRET_ACCESS_KEY}" \
-            -var "aws_region=${AWS_REGION}"
-            -var 'subnet_ids=["subnet-09783b1226fd9b1dc","subnet-0cd08e60b6f506559","subnet-0367b95ab8581d399"]'
+            -var "aws_region=${AWS_REGION}" \
+            -var "subnet_ids=['subnet-09783b1226fd9b1dc','subnet-0cd08e60b6f506559','subnet-0367b95ab8581d399']" \
+            -var "vpc_id=vpc-04ffa64ef9b7f6c35"
         
   # deploy:
   #   name: Deploy to EKS
