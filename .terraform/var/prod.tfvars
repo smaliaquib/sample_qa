@@ -1,4 +1,4 @@
-#stag.tfvars
+#prod.tfvars
 aws_region        = "us-east-1"
 project_id        = "qa-system-prod"
 eks_cluster_name  = "my-eks-cluster"
