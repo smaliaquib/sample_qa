@@ -6,7 +6,7 @@ data "aws_caller_identity" "current_identity" {}
 
 # EKS Cluster 
 module "eks" {
-  source = "./modules/eks"
+  source = "./eks"
   cluster_name = "${var.eks_cluster_name}-${var.project_id}"
   vpc_id = var.vpc_id
   subnet_ids = var.subnet_ids
