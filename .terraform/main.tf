@@ -11,7 +11,6 @@ module "eks" {
   vpc_id = var.vpc_id
   subnet_ids = var.subnet_ids
   eks_version = var.eks_version
-  node_group_name = "${var.node_group_name}-${var.project_id}"
   node_instance_type = var.node_instance_type
   node_desired_size = var.node_desired_size
   node_max_size = var.node_max_size
