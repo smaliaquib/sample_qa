@@ -1,6 +1,7 @@
 # variables.tf
 variable "aws_region" {
   description = "AWS region to create resources"
+  default     = "us-east-1"
 }
 
 variable "eks_cluster_name" {
