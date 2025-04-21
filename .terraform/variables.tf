@@ -1,7 +1,6 @@
 # variables.tf
 variable "aws_region" {
   description = "AWS region to create resources"
-  default     = "${{ secrets.AWS_REGION }}"
 }
 
 variable "eks_cluster_name" {
