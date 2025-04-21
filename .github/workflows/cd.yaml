@@ -38,6 +38,7 @@ jobs:
 
       - name: Generate prod.tfvars from secrets
         run: |
+          mkdir -p var
           cat <<EOF > var/prod.tfvars
           region        = "${{ secrets.AWS_REGION }}"
           cluster_name  = "${{ secrets.EKS_CLUSTER_NAME }}"
