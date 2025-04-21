@@ -1,9 +1,8 @@
 #prod.tfvars
-aws_region        = "us-east-1"
-project_id        = "qa-system-prod"
-eks_cluster_name  = "my-eks-cluster"
-vpc_id            = "vpc-04ffa64ef9b7f6c35"  # Replace with your VPC ID
-subnet_ids        = ["subnet-09783b1226fd9b1dc","subnet-0cd08e60b6f506559","subnet-0367b95ab8581d399"] # Replace with your subnet IDs
+aws_region        = "${{ secrets.AWS_REGION }}"
+eks_cluster_name  = "${{ secrets.EKS_CLUSTER_NAME }}"
+vpc_id           = "${{ secrets.VPC_ID }}"
+subnet_ids       = ["${{ secrets.SUBNET_ID_1 }}", "${{ secrets.SUBNET_ID_2 }}", "${{ secrets.SUBNET_ID_3 }}"]
 eks_version       = "1.32"
 node_group_name   = "qa-system-nodes"
 node_instance_type = "t3.medium"

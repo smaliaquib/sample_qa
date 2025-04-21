@@ -1,12 +1,7 @@
 # variables.tf
 variable "aws_region" {
   description = "AWS region to create resources"
-  default     = "us-east-1"
-}
-
-variable "project_id" {
-  description = "Project identifier"
-  default = "qa-system"
+  default     = "${{ secrets.AWS_REGION }}"
 }
 
 variable "eks_cluster_name" {

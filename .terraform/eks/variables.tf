@@ -1,7 +1,7 @@
 variable "region" {
   description = "AWS region to deploy EKS cluster"
   type        = string
-  default     = "us-east-1"
+  default     = "${{ secrets.AWS_REGION }}"
 }
 
 variable "cluster_name" {
