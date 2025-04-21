@@ -36,19 +36,32 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
+      - name: Generate prod.tfvars from secrets
+        run: |
+          cat <<EOF > var/prod.tfvars
+          region        = "${{ secrets.AWS_REGION }}"
+          cluster_name  = "${{ secrets.EKS_CLUSTER_NAME }}"
+          vpc_id        = "${{ secrets.VPC_ID }}"
+          subnet_ids    = ["${{ secrets.SUBNET_ID_1 }}", "${{ secrets.SUBNET_ID_2 }}", "${{ secrets.SUBNET_ID_3 }}"]
+          cluster_version = "1.32"
+          node_group_name = "qa-system-nodes"
+          node_instance_types = ["t3.medium"]
+          node_desired_size = 2
+          node_max_size     = 3
+          node_min_size     = 1
+          tags = {
+            Environment = "prod"
+            Terraform   = "true"
+          }
+          EOF
+
       - name: Terraform Apply
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           terraform apply -auto-approve -var-file=var/prod.tfvars
-          # terraform apply -auto-approve \
-          #   -var "aws_access_key=${AWS_ACCESS_KEY_ID}" \
-          #   -var "aws_secret_key=${AWS_SECRET_ACCESS_KEY}" \
-          #   -var "aws_region=${AWS_REGION}" \
-          #   -var "subnet_ids=['subnet-09783b1226fd9b1dc','subnet-0cd08e60b6f506559','subnet-0367b95ab8581d399']" \
-          #   -var "vpc_id=vpc-04ffa64ef9b7f6c35"
-        
+      
   # deploy:
   #   name: Deploy to EKS
   #   runs-on: ubuntu-latest
